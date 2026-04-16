@@ -23,3 +23,10 @@ enum CertificationStatus {
     PENDING
     CANCELLED
 }
+
+enum BookingStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}

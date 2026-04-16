@@ -1,0 +1,20 @@
+model PlantTracking {
+    id Int @id @default(autoincrement())
+
+    rentalSpaceId Int
+    rentalSpace   RentalSpace @relation(fields: [rentalSpaceId], references: [id])
+
+    userId Int
+    user   User @relation(fields: [userId], references: [id])
+
+    plantName    String
+    growthStatus String // Seedling, Vegetative, Flowering, Ready to Harvest
+    healthStatus String // Healthy, Needs Water, Pest Alert
+
+    plantedDate          DateTime  @default(now())
+    estimatedHarvestDate DateTime?
+
+    lastUpdate DateTime @updatedAt
+
+    createdAt DateTime @default(now())
+}
