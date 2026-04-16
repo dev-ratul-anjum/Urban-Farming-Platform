@@ -4,9 +4,8 @@ model VendorProfile {
     farmName     String
     farmLocation String
 
-    user           User                 @relation(fields: [userId], references: [id])
-    produces       Produce[]
-    rentalSpaces   RentalSpace[]
-    orders         Order[]
-    certifications SustainabilityCert[]
+    user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    produces     Produce[]
+    rentalSpaces RentalSpace[]
+    orders       Order[]
 }

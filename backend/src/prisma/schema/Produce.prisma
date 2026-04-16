@@ -8,7 +8,7 @@ model Produce {
     certificationStatus CertificationStatus
     availableQuantity   Int
 
-    vendor VendorProfile @relation(fields: [vendorId], references: [id])
+    vendor VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
     orders Order[]
 
     sustainabilityCerts SustainabilityCert?

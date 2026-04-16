@@ -6,5 +6,5 @@ model RentalSpace {
     price        Float
     availability Boolean
 
-    vendor VendorProfile @relation(fields: [vendorId], references: [id])
+    vendor VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 }
