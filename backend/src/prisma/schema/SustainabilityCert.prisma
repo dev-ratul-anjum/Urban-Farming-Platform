@@ -1,0 +1,11 @@
+model SustainabilityCert {
+    id                Int      @id @default(autoincrement())
+    produceId         Int      @unique
+    certifyingAgency  String
+    certificationDate DateTime
+    attachments       String[]
+
+    produce         Produce        @relation(fields: [produceId], references: [id])
+    vendorProfile   VendorProfile? @relation(fields: [vendorProfileId], references: [id])
+    vendorProfileId Int?
+}

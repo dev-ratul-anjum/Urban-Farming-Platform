@@ -1,0 +1,8 @@
+model CommunityPost {
+    id          Int      @id @default(autoincrement())
+    userId      Int
+    postContent String
+    postDate    DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id])
+}

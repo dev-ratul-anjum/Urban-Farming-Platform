@@ -1,0 +1,12 @@
+model Order {
+    id        Int         @id @default(autoincrement())
+    userId    Int
+    produceId Int
+    vendorId  Int
+    status    OrderStatus
+    orderDate DateTime    @default(now())
+
+    user    User          @relation(fields: [userId], references: [id])
+    produce Produce       @relation(fields: [produceId], references: [id])
+    vendor  VendorProfile @relation(fields: [vendorId], references: [id])
+}

@@ -1,0 +1,10 @@
+model RentalSpace {
+    id           Int     @id @default(autoincrement())
+    vendorId     Int
+    location     String
+    size         Float
+    price        Float
+    availability Boolean
+
+    vendor VendorProfile @relation(fields: [vendorId], references: [id])
+}

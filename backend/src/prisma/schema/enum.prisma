@@ -1,0 +1,25 @@
+enum UserRole {
+    ADMIN
+    VENDOR
+    CUSTOMER
+}
+
+enum UserStatus {
+    ACTIVE
+    PENDING
+    BLOCKED
+}
+
+enum OrderStatus {
+    PENDING
+    CONFIRMED
+    SHIPPED
+    DELIVERED
+    CANCELLED
+}
+
+enum CertificationStatus {
+    APPROVED
+    PENDING
+    CANCELLED
+}
