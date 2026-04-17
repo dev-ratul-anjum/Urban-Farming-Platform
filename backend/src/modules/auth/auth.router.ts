@@ -3,6 +3,7 @@ import validateSchema from "$/middlewares/validateSchema.js";
 import { loginUserSchema } from "./auth.schema.js";
 import authController from "./auth.controller.js";
 import checkAuth from "$/middlewares/checkAuth.js";
+import { loginLimiter } from "$/middlewares/rateLimiter.js";
 
 const authRouter = express.Router();
 
@@ -10,6 +11,7 @@ const authRouter = express.Router();
 authRouter.post(
   "/v1/login",
   validateSchema(loginUserSchema),
+  loginLimiter,
   authController.loginUser,
 );
 

@@ -3,6 +3,7 @@ import validateSchema from "$/middlewares/validateSchema.js";
 import { createUserSchema, updateUserSchema } from "./user.schema.js";
 import { UserController } from "./user.controller.js";
 import checkAuth from "$/middlewares/checkAuth.js";
+import { signupLimiter } from "$/middlewares/rateLimiter.js";
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 router.post(
   "/v1/register",
   validateSchema(createUserSchema),
+  signupLimiter,
   UserController.createUser,
 );
 

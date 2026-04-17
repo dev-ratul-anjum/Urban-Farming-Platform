@@ -49,6 +49,5 @@ export const generateMockVendorProfiles = (
     userId: user.id,
     farmName: `${user.name} Farm`,
     farmLocation: `Location District ${index + 1}`,
-    description: `A sample description for ${user.name}`,
   }));
 };
