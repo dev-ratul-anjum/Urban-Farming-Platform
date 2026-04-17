@@ -83,7 +83,7 @@ const getOrderById = async (id: number) => {
 const updateOrder = async (
   id: number,
   user: { id: number; role: UserRole },
-  payload: TUpdateOrderSchema
+  payload: TUpdateOrderSchema,
 ) => {
   const order = await prisma.order.findUnique({
     where: { id },
@@ -94,9 +94,12 @@ const updateOrder = async (
     throw new ApiError(404, "Order not found.");
   }
 
-  // Only Admin or Vendor owning the order should update it
-  if (order.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this order.");
+  // Only Vendor owning the order should update it
+  if (order.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this order.",
+    );
   }
 
   const updatedOrder = await prisma.order.update({
@@ -107,7 +110,10 @@ const updateOrder = async (
   return updatedOrder;
 };
 
-const deleteOrder = async (id: number, user: { id: number; role: UserRole }) => {
+const deleteOrder = async (
+  id: number,
+  user: { id: number; role: UserRole },
+) => {
   const order = await prisma.order.findUnique({
     where: { id },
     include: { vendor: true },
@@ -117,10 +123,13 @@ const deleteOrder = async (id: number, user: { id: number; role: UserRole }) => 
     throw new ApiError(404, "Order not found.");
   }
 
-  // Only Admin or Vendor owning the order should delete it (or maybe the user who created it).
+  // Only Vendor owning the order should delete it (or maybe the user who created it).
   // Standard generic check:
-  if (order.userId !== user.id && order.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to delete this order.");
+  if (order.userId !== user.id && order.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to delete this order.",
+    );
   }
 
   await prisma.order.delete({ where: { id } });

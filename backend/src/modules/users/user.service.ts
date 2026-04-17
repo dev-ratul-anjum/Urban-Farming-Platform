@@ -12,10 +12,6 @@ const createUser = async (payload: TCreateUserSchema) => {
     status = UserStatus.ACTIVE;
   } else if (role === "VENDOR") {
     status = UserStatus.PENDING;
-  } else if (role === "ADMIN") {
-    // For admin, allow explicitly setting the status value during creation.
-    // If not provided, default to PENDING.
-    status = status ? status : UserStatus.PENDING;
   }
 
   // Check if a user with this email already exists

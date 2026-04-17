@@ -3,12 +3,13 @@ import catchAsync from "$/utils/catchAsync.js";
 import responseHandler from "$/utils/responseHandler.js";
 import { OrderService } from "./order.service.js";
 import { UserRole } from "$/prisma/generated/enums.js";
+import { ApiError } from "$/middlewares/errorHandler.js";
 
 const createOrder = catchAsync(async (req: Request, res: Response) => {
   const currentUserId = req.user!.id;
-  
+
   const result = await OrderService.createOrder(currentUserId, req.body);
-  
+
   return responseHandler(res, 201, {
     success: true,
     message: "Order placed successfully",
@@ -18,7 +19,7 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderService.getAllOrders(req.query);
-  
+
   return responseHandler(res, 200, {
     success: true,
     message: "Orders retrieved successfully",
@@ -27,8 +28,12 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getOrderById = catchAsync(async (req: Request, res: Response) => {
-  const result = await OrderService.getOrderById(Number(req.params.id));
-  
+  const orderId = Number(req.params.id);
+  if (isNaN(orderId)) {
+    throw new ApiError(400, "Invalid order ID");
+  }
+  const result = await OrderService.getOrderById(orderId);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Order retrieved successfully",
@@ -38,8 +43,13 @@ const getOrderById = catchAsync(async (req: Request, res: Response) => {
 
 const updateOrder = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await OrderService.updateOrder(Number(req.params.id), user, req.body);
-  
+
+  const orderId = Number(req.params.id);
+  if (isNaN(orderId)) {
+    throw new ApiError(400, "Invalid order ID");
+  }
+  const result = await OrderService.updateOrder(orderId, user, req.body);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Order updated successfully",
@@ -49,8 +59,13 @@ const updateOrder = catchAsync(async (req: Request, res: Response) => {
 
 const deleteOrder = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await OrderService.deleteOrder(Number(req.params.id), user);
-  
+
+  const orderId = Number(req.params.id);
+  if (isNaN(orderId)) {
+    throw new ApiError(400, "Invalid order ID");
+  }
+  const result = await OrderService.deleteOrder(orderId, user);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Order deleted successfully",

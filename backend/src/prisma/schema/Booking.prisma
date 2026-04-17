@@ -5,7 +5,7 @@ model Booking {
     user   User @relation(fields: [userId], references: [id])
 
     rentalSpaceId Int
-    rentalSpace   RentalSpace @relation(fields: [rentalSpaceId], references: [id])
+    rentalSpace   RentalSpace @relation(fields: [rentalSpaceId], references: [id], onDelete: Cascade)
 
     startDate DateTime
     endDate   DateTime

@@ -9,10 +9,10 @@ const router = express.Router();
 
 // Allowed file types and limits for certificates
 const upload = uploader(
-  ["application/pdf", "image/jpeg", "image/png", "image/webp"], 
+  ["application/pdf", "image/jpeg", "image/png", "image/webp"],
   5 * 1024 * 1024, // 5 MB max
   "Only PDF and JPEG/PNG/WEBP Image formats are allowed.",
-  3 // Max 3 files
+  3, // Max 3 files
 );
 
 // Get all produces (publicly visible ones)
@@ -24,25 +24,25 @@ router.get("/v1/:id", ProduceController.getProduceById);
 // Create a new produce (Requires file upload)
 router.post(
   "/v1/create",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   upload.array("attachments"),
   validateSchema(createProduceSchema),
-  ProduceController.createProduce
+  ProduceController.createProduce,
 );
 
 // Update a produce
 router.patch(
   "/v1/update/:id",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   validateSchema(updateProduceSchema),
-  ProduceController.updateProduce
+  ProduceController.updateProduce,
 );
 
 // Delete a produce
 router.delete(
   "/v1/delete/:id",
   checkAuth(["VENDOR", "ADMIN"]),
-  ProduceController.deleteProduce
+  ProduceController.deleteProduce,
 );
 
 export const ProduceRoutes = router;

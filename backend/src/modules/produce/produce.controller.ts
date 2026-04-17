@@ -40,7 +40,11 @@ const getAllProduces = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getProduceById = catchAsync(async (req: Request, res: Response) => {
-  const result = await ProduceService.getProduceById(Number(req.params.id));
+  const produceId = Number(req.params.id);
+  if(isNaN(produceId)){
+    throw new ApiError(400, "Invalid produce ID");
+  }
+  const result = await ProduceService.getProduceById(produceId);
   
   return responseHandler(res, 200, {
     success: true,
@@ -51,7 +55,12 @@ const getProduceById = catchAsync(async (req: Request, res: Response) => {
 
 const updateProduce = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await ProduceService.updateProduce(Number(req.params.id), user, req.body);
+
+  const produceId = Number(req.params.id);
+  if(isNaN(produceId)){
+    throw new ApiError(400, "Invalid produce ID");
+  }
+  const result = await ProduceService.updateProduce(produceId, user, req.body);
   
   return responseHandler(res, 200, {
     success: true,
@@ -62,7 +71,12 @@ const updateProduce = catchAsync(async (req: Request, res: Response) => {
 
 const deleteProduce = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await ProduceService.deleteProduce(Number(req.params.id), user);
+
+  const produceId = Number(req.params.id);
+  if(isNaN(produceId)){
+    throw new ApiError(400, "Invalid produce ID");
+  }
+  const result = await ProduceService.deleteProduce(produceId, user);
   
   return responseHandler(res, 200, {
     success: true,

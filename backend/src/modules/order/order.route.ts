@@ -17,22 +17,18 @@ router.post(
   "/v1/create",
   checkAuth(),
   validateSchema(createOrderSchema),
-  OrderController.createOrder
+  OrderController.createOrder,
 );
 
-// Update an order (typically for Vendors/Admins to update status)
+// Update an order (typically for Vendors to update status)
 router.patch(
   "/v1/update/:id",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   validateSchema(updateOrderSchema),
-  OrderController.updateOrder
+  OrderController.updateOrder,
 );
 
 // Delete an order
-router.delete(
-  "/v1/delete/:id",
-  checkAuth(),
-  OrderController.deleteOrder
-);
+router.delete("/v1/delete/:id", checkAuth(), OrderController.deleteOrder);
 
 export const OrderRoutes = router;

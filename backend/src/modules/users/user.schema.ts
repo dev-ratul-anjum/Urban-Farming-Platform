@@ -6,7 +6,7 @@ export const createUserSchema = z.object({
   password: z
     .string("Password is required")
     .min(6, "Password must be at least 6 characters long"),
-  role: z.enum(["ADMIN", "VENDOR", "CUSTOMER"], {
+  role: z.enum(["VENDOR", "CUSTOMER"], {
     message: "Role is required",
   }),
   status: z.enum(["ACTIVE", "PENDING", "BLOCKED"]).default("PENDING"),

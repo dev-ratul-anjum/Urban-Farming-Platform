@@ -5,9 +5,12 @@ export const createOrderSchema = z.object({
 });
 
 export const updateOrderSchema = z.object({
-  status: z.enum(["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"], {
-    message: "Status must be a valid order status.",
-  }),
+  status: z.enum(
+    ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"],
+    {
+      message: "Status must be a valid order status.",
+    },
+  ),
 });
 
 export type TCreateOrderSchema = z.infer<typeof createOrderSchema>;

@@ -1,9 +1,15 @@
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserRole } from "$/prisma/generated/enums.js";
-import { TCreatePlantTrackingSchema, TUpdatePlantTrackingSchema } from "./plant-tracking.schema.js";
+import {
+  TCreatePlantTrackingSchema,
+  TUpdatePlantTrackingSchema,
+} from "./plant-tracking.schema.js";
 
-const createPlantTracking = async (userId: number, payload: TCreatePlantTrackingSchema) => {
+const createPlantTracking = async (
+  userId: number,
+  payload: TCreatePlantTrackingSchema,
+) => {
   const rentalSpace = await prisma.rentalSpace.findUnique({
     where: { id: payload.rentalSpaceId },
   });
@@ -13,8 +19,12 @@ const createPlantTracking = async (userId: number, payload: TCreatePlantTracking
   }
 
   // Determine dates
-  const plantedDate = payload.plantedDate ? new Date(payload.plantedDate) : new Date();
-  const estimatedHarvestDate = payload.estimatedHarvestDate ? new Date(payload.estimatedHarvestDate) : null;
+  const plantedDate = payload.plantedDate
+    ? new Date(payload.plantedDate)
+    : new Date();
+  const estimatedHarvestDate = payload.estimatedHarvestDate
+    ? new Date(payload.estimatedHarvestDate)
+    : null;
 
   const trackingRecord = await prisma.plantTracking.create({
     data: {
@@ -28,20 +38,23 @@ const createPlantTracking = async (userId: number, payload: TCreatePlantTracking
     },
     include: {
       user: { select: { name: true, email: true } },
-      rentalSpace: { select: { location: true } }
-    }
+      rentalSpace: { select: { location: true } },
+    },
   });
 
   return trackingRecord;
 };
 
-const getPlantTrackingByRentalSpace = async (rentalSpaceId: number, query: Record<string, any>) => {
+const getPlantTrackingByRentalSpace = async (
+  rentalSpaceId: number,
+  query: Record<string, any>,
+) => {
   const pageNumber = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (pageNumber - 1) * limit;
 
   const rentalSpace = await prisma.rentalSpace.findUnique({
-    where: { id: rentalSpaceId }
+    where: { id: rentalSpaceId },
   });
 
   if (!rentalSpace) {
@@ -77,7 +90,11 @@ const getPlantTrackingByRentalSpace = async (rentalSpaceId: number, query: Recor
   };
 };
 
-const updatePlantTracking = async (id: number, user: { id: number; role: UserRole }, payload: TUpdatePlantTrackingSchema) => {
+const updatePlantTracking = async (
+  id: number,
+  user: { id: number; role: UserRole },
+  payload: TUpdatePlantTrackingSchema,
+) => {
   const trackingRecord = await prisma.plantTracking.findUnique({
     where: { id },
     include: { rentalSpace: { include: { vendor: true } } },
@@ -88,13 +105,18 @@ const updatePlantTracking = async (id: number, user: { id: number; role: UserRol
   }
 
   // Only the owner of the rental space can update
-  if (trackingRecord.rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: Only the owner of the rental space can update plant tracking data.");
+  if (trackingRecord.rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: Only the owner of the rental space can update plant tracking data.",
+    );
   }
 
   const updateData: any = { ...payload };
-  if (payload.plantedDate) updateData.plantedDate = new Date(payload.plantedDate);
-  if (payload.estimatedHarvestDate) updateData.estimatedHarvestDate = new Date(payload.estimatedHarvestDate);
+  if (payload.plantedDate)
+    updateData.plantedDate = new Date(payload.plantedDate);
+  if (payload.estimatedHarvestDate)
+    updateData.estimatedHarvestDate = new Date(payload.estimatedHarvestDate);
 
   const updatedRecord = await prisma.plantTracking.update({
     where: { id },
@@ -104,7 +126,10 @@ const updatePlantTracking = async (id: number, user: { id: number; role: UserRol
   return updatedRecord;
 };
 
-const deletePlantTracking = async (id: number, user: { id: number; role: UserRole }) => {
+const deletePlantTracking = async (
+  id: number,
+  user: { id: number; role: UserRole },
+) => {
   const trackingRecord = await prisma.plantTracking.findUnique({
     where: { id },
     include: { rentalSpace: { include: { vendor: true } } },
@@ -115,8 +140,11 @@ const deletePlantTracking = async (id: number, user: { id: number; role: UserRol
   }
 
   // Only the owner of the rental space can delete
-  if (trackingRecord.rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: Only the owner of the rental space can delete plant tracking data.");
+  if (trackingRecord.rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: Only the owner of the rental space can delete plant tracking data.",
+    );
   }
 
   await prisma.plantTracking.delete({ where: { id } });

@@ -1,6 +1,13 @@
+import bcrypt from "bcryptjs";
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
-import { TAdminUpdateUserSchema, TAdminUpdateOrderSchema, TAdminUpdateProduceSchema, TAdminUpdateBookingSchema } from "./admin.schema.js";
+import {
+  TAdminUpdateUserSchema,
+  TAdminUpdateOrderSchema,
+  TAdminUpdateProduceSchema,
+  TAdminUpdateBookingSchema,
+  TCreateAdminSchema,
+} from "./admin.schema.js";
 
 // --- USER MANAGEMENT ---
 const updateUser = async (id: number, payload: TAdminUpdateUserSchema) => {
@@ -119,7 +126,10 @@ const getAllProduces = async (query: Record<string, any>) => {
   };
 };
 
-const updateProduce = async (id: number, payload: TAdminUpdateProduceSchema) => {
+const updateProduce = async (
+  id: number,
+  payload: TAdminUpdateProduceSchema,
+) => {
   const produce = await prisma.produce.findUnique({ where: { id } });
   if (!produce) throw new ApiError(404, "Produce not found.");
 
@@ -199,7 +209,10 @@ const getAllBookings = async (query: Record<string, any>) => {
   };
 };
 
-const updateBooking = async (id: number, payload: TAdminUpdateBookingSchema) => {
+const updateBooking = async (
+  id: number,
+  payload: TAdminUpdateBookingSchema,
+) => {
   const booking = await prisma.booking.findUnique({ where: { id } });
   if (!booking) throw new ApiError(404, "Booking not found.");
 
@@ -210,9 +223,15 @@ const updateBooking = async (id: number, payload: TAdminUpdateBookingSchema) => 
 
   if (payload.status) {
     if (payload.status === "ACTIVE") {
-      await prisma.rentalSpace.update({ where: { id: updatedBooking.rentalSpaceId }, data: { availability: false } });
+      await prisma.rentalSpace.update({
+        where: { id: updatedBooking.rentalSpaceId },
+        data: { availability: false },
+      });
     } else {
-      await prisma.rentalSpace.update({ where: { id: updatedBooking.rentalSpaceId }, data: { availability: true } });
+      await prisma.rentalSpace.update({
+        where: { id: updatedBooking.rentalSpaceId },
+        data: { availability: true },
+      });
     }
   }
 
@@ -263,14 +282,49 @@ const getAllPlantTrackings = async (query: Record<string, any>) => {
 };
 
 const deletePlantTracking = async (id: number) => {
-  const trackingRecord = await prisma.plantTracking.findUnique({ where: { id } });
-  if (!trackingRecord) throw new ApiError(404, "Plant tracking record not found.");
+  const trackingRecord = await prisma.plantTracking.findUnique({
+    where: { id },
+  });
+  if (!trackingRecord)
+    throw new ApiError(404, "Plant tracking record not found.");
 
   await prisma.plantTracking.delete({ where: { id } });
   return null;
 };
 
+const createAdmin = async (payload: TCreateAdminSchema) => {
+  const { name, email, password, status } = payload;
+
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new ApiError(409, "User with this email already exists.");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role: "ADMIN",
+      status,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+
+  return newUser;
+};
+
 export const AdminService = {
+  createAdmin,
   updateUser,
   deleteUser,
   deleteCommunityPost,

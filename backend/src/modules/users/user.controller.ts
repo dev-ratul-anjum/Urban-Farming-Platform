@@ -1,23 +1,10 @@
 import { Request, Response } from "express";
 import catchAsync from "$/utils/catchAsync.js";
 import responseHandler from "$/utils/responseHandler.js";
-import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserService } from "./user.service.js";
 
 // Register Any User
 const createUser = catchAsync(async (req: Request, res: Response) => {
-  const authUser = (req as any).user; // Assuming user might be attached by an auth middleware
-
-  if (req.body.role === "ADMIN") {
-    // Ensure that only an admin can create another admin user
-    if (!authUser || authUser.role !== "ADMIN") {
-      throw new ApiError(
-        403,
-        "Forbidden: Only an admin can create another admin user.",
-      );
-    }
-  }
-
   const result = await UserService.createUser(req.body);
   return responseHandler(res, 201, {
     success: true,

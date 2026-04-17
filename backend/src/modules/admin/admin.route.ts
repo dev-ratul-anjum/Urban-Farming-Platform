@@ -2,12 +2,15 @@ import express from "express";
 import validateSchema from "$/middlewares/validateSchema.js";
 import checkAuth from "$/middlewares/checkAuth.js";
 import { AdminController } from "./admin.controller.js";
-import { adminUpdateUserSchema, adminUpdateOrderSchema, adminUpdateProduceSchema, adminUpdateBookingSchema } from "./admin.schema.js";
+import { adminUpdateUserSchema, adminUpdateOrderSchema, adminUpdateProduceSchema, adminUpdateBookingSchema, createAdminSchema } from "./admin.schema.js";
 
 const router = express.Router();
 
 // ALL ROUTES ARE ADMIN ONLY
 const adminAuth = checkAuth(["ADMIN"]);
+
+// Create Admin
+router.post("/v1/register", adminAuth, validateSchema(createAdminSchema), AdminController.createAdmin);
 
 // --- User Management ---
 router.patch("/v1/users/:id", adminAuth, validateSchema(adminUpdateUserSchema), AdminController.updateUser);

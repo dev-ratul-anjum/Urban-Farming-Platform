@@ -1,19 +1,25 @@
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserRole, CertificationStatus } from "$/prisma/generated/enums.js";
-import { TCreateProduceSchema, TUpdateProduceSchema } from "./produce.schema.js";
+import {
+  TCreateProduceSchema,
+  TUpdateProduceSchema,
+} from "./produce.schema.js";
 
 const createProduce = async (
   userId: number,
   payload: TCreateProduceSchema,
-  fileUrls: string[]
+  fileUrls: string[],
 ) => {
   const vendorProfile = await prisma.vendorProfile.findUnique({
     where: { userId },
   });
 
   if (!vendorProfile) {
-    throw new ApiError(403, "Forbidden: Only vendors with a complete profile can create a produce.");
+    throw new ApiError(
+      403,
+      "Forbidden: Only vendors with a complete profile can create a produce.",
+    );
   }
 
   const { certifyingAgency, certificationDate, ...produceData } = payload;
@@ -45,7 +51,7 @@ const getAllProduces = async (query: Record<string, any>) => {
   const limit = Number(query.limit) || 10;
   const skip = (pageNumber - 1) * limit;
 
-  // Requirements: Must return only produces with approved SustainabilityCert
+  // Must return only produces with approved SustainabilityCert
   const whereFilter = {
     certificationStatus: CertificationStatus.APPROVED,
   };
@@ -83,7 +89,14 @@ const getProduceById = async (id: number) => {
   const produce = await prisma.produce.findUnique({
     where: { id },
     include: {
-      vendor: { select: { id: true, farmName: true, farmLocation: true, user: { select: { name: true, email: true } } } },
+      vendor: {
+        select: {
+          id: true,
+          farmName: true,
+          farmLocation: true,
+          user: { select: { name: true, email: true } },
+        },
+      },
       sustainabilityCerts: true,
     },
   });
@@ -91,12 +104,12 @@ const getProduceById = async (id: number) => {
   if (!produce) {
     throw new ApiError(404, "Produce not found.");
   }
-
-  // If public request, we could block it if not APPROVED, but often direct links are okay.
-  // To strictly enforce "only approved certifications should be visible in public GET requests",
-  // we check the status here. If it's not approved, we return 404.
+  
   if (produce.certificationStatus !== CertificationStatus.APPROVED) {
-    throw new ApiError(403, "This produce is currently pending certification approval.");
+    throw new ApiError(
+      403,
+      "This produce is currently pending certification approval.",
+    );
   }
 
   return produce;
@@ -105,7 +118,7 @@ const getProduceById = async (id: number) => {
 const updateProduce = async (
   id: number,
   user: { id: number; role: UserRole },
-  payload: TUpdateProduceSchema
+  payload: TUpdateProduceSchema,
 ) => {
   const produce = await prisma.produce.findUnique({
     where: { id },
@@ -116,8 +129,11 @@ const updateProduce = async (
     throw new ApiError(404, "Produce not found.");
   }
 
-  if (produce.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this produce.");
+  if (produce.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this produce.",
+    );
   }
 
   const updatedProduce = await prisma.produce.update({
@@ -128,7 +144,10 @@ const updateProduce = async (
   return updatedProduce;
 };
 
-const deleteProduce = async (id: number, user: { id: number; role: UserRole }) => {
+const deleteProduce = async (
+  id: number,
+  user: { id: number; role: UserRole },
+) => {
   const produce = await prisma.produce.findUnique({
     where: { id },
     include: { vendor: true },
@@ -138,8 +157,11 @@ const deleteProduce = async (id: number, user: { id: number; role: UserRole }) =
     throw new ApiError(404, "Produce not found.");
   }
 
-  if (produce.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to delete this produce.");
+  if (produce.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to delete this produce.",
+    );
   }
 
   await prisma.produce.delete({ where: { id } });
