@@ -1,9 +1,15 @@
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserRole } from "$/prisma/generated/enums.js";
-import { TCreateCommunityPostSchema, TUpdateCommunityPostSchema } from "./community-post.schema.js";
+import {
+  TCreateCommunityPostSchema,
+  TUpdateCommunityPostSchema,
+} from "./community-post.schema.js";
 
-const createPost = async (userId: number, payload: TCreateCommunityPostSchema) => {
+const createPost = async (
+  userId: number,
+  payload: TCreateCommunityPostSchema,
+) => {
   const post = await prisma.communityPost.create({
     data: {
       userId,
@@ -44,6 +50,7 @@ const getAllPosts = async (query: Record<string, any>) => {
   const hasPrevPage = pageNumber > 1;
 
   return {
+    posts: rows,
     meta: {
       totalItems,
       currentPage: pageNumber,
@@ -52,11 +59,13 @@ const getAllPosts = async (query: Record<string, any>) => {
       nextPage: hasNextPage ? pageNumber + 1 : null,
       prevPage: hasPrevPage ? pageNumber - 1 : null,
     },
-    posts: rows,
   };
 };
 
-const getAllPostsByUser = async (userId: number, query: Record<string, any>) => {
+const getAllPostsByUser = async (
+  userId: number,
+  query: Record<string, any>,
+) => {
   const pageNumber = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (pageNumber - 1) * limit;
@@ -78,6 +87,7 @@ const getAllPostsByUser = async (userId: number, query: Record<string, any>) => 
   const hasPrevPage = pageNumber > 1;
 
   return {
+    posts: rows,
     meta: {
       totalItems,
       currentPage: pageNumber,
@@ -86,7 +96,6 @@ const getAllPostsByUser = async (userId: number, query: Record<string, any>) => 
       nextPage: hasNextPage ? pageNumber + 1 : null,
       prevPage: hasPrevPage ? pageNumber - 1 : null,
     },
-    posts: rows,
   };
 };
 
@@ -106,7 +115,7 @@ const getPostById = async (id: number) => {
 const updatePost = async (
   id: number,
   user: { id: number; role: UserRole },
-  payload: TUpdateCommunityPostSchema
+  payload: TUpdateCommunityPostSchema,
 ) => {
   const post = await prisma.communityPost.findUnique({ where: { id } });
 
@@ -115,8 +124,11 @@ const updatePost = async (
   }
 
   // Check authorization
-  if (post.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this post.");
+  if (post.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this post.",
+    );
   }
 
   const updatedPost = await prisma.communityPost.update({
@@ -134,8 +146,11 @@ const deletePost = async (id: number, user: { id: number; role: UserRole }) => {
     throw new ApiError(404, "Community post not found.");
   }
 
-  if (post.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to delete this post.");
+  if (post.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to delete this post.",
+    );
   }
 
   await prisma.communityPost.delete({ where: { id } });

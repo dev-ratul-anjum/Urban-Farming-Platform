@@ -1,7 +1,10 @@
 import express from "express";
 import validateSchema from "$/middlewares/validateSchema.js";
 import checkAuth from "$/middlewares/checkAuth.js";
-import { createRentalSpaceSchema, updateRentalSpaceSchema } from "./rental-space.schema.js";
+import {
+  createRentalSpaceSchema,
+  updateRentalSpaceSchema,
+} from "./rental-space.schema.js";
 import { RentalSpaceController } from "./rental-space.controller.js";
 
 const router = express.Router();
@@ -15,24 +18,24 @@ router.get("/v1/:id", RentalSpaceController.getRentalSpaceById);
 // Create a new rental space (Only VENDORs)
 router.post(
   "/v1/create",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   validateSchema(createRentalSpaceSchema),
-  RentalSpaceController.createRentalSpace
+  RentalSpaceController.createRentalSpace,
 );
 
 // Update a rental space
 router.patch(
   "/v1/update/:id",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   validateSchema(updateRentalSpaceSchema),
-  RentalSpaceController.updateRentalSpace
+  RentalSpaceController.updateRentalSpace,
 );
 
 // Delete a rental space
 router.delete(
   "/v1/delete/:id",
-  checkAuth(["VENDOR", "ADMIN"]),
-  RentalSpaceController.deleteRentalSpace
+  checkAuth(["VENDOR"]),
+  RentalSpaceController.deleteRentalSpace,
 );
 
 export const RentalSpaceRoutes = router;

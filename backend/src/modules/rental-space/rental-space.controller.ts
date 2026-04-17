@@ -3,6 +3,7 @@ import catchAsync from "$/utils/catchAsync.js";
 import responseHandler from "$/utils/responseHandler.js";
 import { RentalSpaceService } from "./rental-space.service.js";
 import { UserRole } from "$/prisma/generated/enums.js";
+import { ApiError } from "$/middlewares/errorHandler.js";
 
 const createRentalSpace = catchAsync(async (req: Request, res: Response) => {
   const currentUserId = req.user!.id;
@@ -26,8 +27,14 @@ const getAllRentalSpaces = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getRentalSpaceById = catchAsync(async (req: Request, res: Response) => {
-  const result = await RentalSpaceService.getRentalSpaceById(Number(req.params.id));
-  
+  const id = Number(req.params.id);
+
+  if (Number.isNaN(id)) {
+    throw new ApiError(400, "Invalid rental space ID");
+  }
+
+  const result = await RentalSpaceService.getRentalSpaceById(id);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Rental space retrieved successfully",
@@ -37,7 +44,14 @@ const getRentalSpaceById = catchAsync(async (req: Request, res: Response) => {
 
 const updateRentalSpace = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await RentalSpaceService.updateRentalSpace(Number(req.params.id), user, req.body);
+
+  const rentalId = Number(req.params.id);
+
+  if (Number.isNaN(rentalId)) {
+    throw new ApiError(400, "Invalid rental space ID");
+  }
+
+  const result = await RentalSpaceService.updateRentalSpace(rentalId, user, req.body);
   
   return responseHandler(res, 200, {
     success: true,
@@ -48,7 +62,14 @@ const updateRentalSpace = catchAsync(async (req: Request, res: Response) => {
 
 const deleteRentalSpace = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await RentalSpaceService.deleteRentalSpace(Number(req.params.id), user);
+
+  const rentalId = Number(req.params.id);
+
+  if (Number.isNaN(rentalId)) {
+    throw new ApiError(400, "Invalid rental space ID");
+  }
+
+  const result = await RentalSpaceService.deleteRentalSpace(rentalId, user);
   
   return responseHandler(res, 200, {
     success: true,

@@ -1,7 +1,11 @@
 import express from "express";
 import validateSchema from "$/middlewares/validateSchema.js";
 import checkAuth from "$/middlewares/checkAuth.js";
-import { createBookingSchema, updateBookingUserSchema, updateBookingVendorSchema } from "./booking.schema.js";
+import {
+  createBookingSchema,
+  updateBookingUserSchema,
+  updateBookingVendorSchema,
+} from "./booking.schema.js";
 import { BookingController } from "./booking.controller.js";
 
 const router = express.Router();
@@ -11,7 +15,7 @@ router.post(
   "/v1/create",
   checkAuth(),
   validateSchema(createBookingSchema),
-  BookingController.createBooking
+  BookingController.createBooking,
 );
 
 router.get("/v1/my-bookings", checkAuth(), BookingController.getUserBookings);
@@ -21,24 +25,22 @@ router.patch(
   "/v1/my-bookings/:id",
   checkAuth(),
   validateSchema(updateBookingUserSchema),
-  BookingController.updateBookingByUser
+  BookingController.updateBookingByUser,
 );
-
 
 // --- Rental Owner (Vendor/Admin) Capabilities ---
 router.get(
   "/v1/rental-space/:rentalSpaceId",
-  checkAuth(["VENDOR", "ADMIN"]),
-  BookingController.getBookingsForRentalSpace
+  checkAuth(["VENDOR"]),
+  BookingController.getBookingsForRentalSpace,
 );
 
 // Owners update full status scope
 router.patch(
   "/v1/vendor-update/:id",
-  checkAuth(["VENDOR", "ADMIN"]),
+  checkAuth(["VENDOR"]),
   validateSchema(updateBookingVendorSchema),
-  BookingController.updateBookingByVendor
+  BookingController.updateBookingByVendor,
 );
-
 
 export const BookingRoutes = router;

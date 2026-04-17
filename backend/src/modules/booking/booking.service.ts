@@ -1,9 +1,16 @@
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserRole, BookingStatus } from "$/prisma/generated/enums.js";
-import { TCreateBookingSchema, TUpdateBookingUserSchema, TUpdateBookingVendorSchema } from "./booking.schema.js";
+import {
+  TCreateBookingSchema,
+  TUpdateBookingUserSchema,
+  TUpdateBookingVendorSchema,
+} from "./booking.schema.js";
 
-const enforceAvailabilityLogic = async (rentalSpaceId: number, status: BookingStatus) => {
+const enforceAvailabilityLogic = async (
+  rentalSpaceId: number,
+  status: BookingStatus,
+) => {
   if (status === BookingStatus.ACTIVE) {
     await prisma.rentalSpace.update({
       where: { id: rentalSpaceId },
@@ -41,8 +48,8 @@ const createBooking = async (userId: number, payload: TCreateBookingSchema) => {
     },
     include: {
       rentalSpace: true,
-      user: { select: { id: true, name: true, email: true } }
-    }
+      user: { select: { id: true, name: true, email: true } },
+    },
   });
 
   // Default is PENDING, but enforce logic anyway just in case Defaults change
@@ -85,7 +92,11 @@ const getUserBookings = async (userId: number, query: Record<string, any>) => {
   };
 };
 
-const getBookingsForRentalSpace = async (rentalSpaceId: number, user: { id: number; role: UserRole }, query: Record<string, any>) => {
+const getBookingsForRentalSpace = async (
+  rentalSpaceId: number,
+  user: { id: number; role: UserRole },
+  query: Record<string, any>,
+) => {
   const rentalSpace = await prisma.rentalSpace.findUnique({
     where: { id: rentalSpaceId },
     include: { vendor: true },
@@ -95,8 +106,11 @@ const getBookingsForRentalSpace = async (rentalSpaceId: number, user: { id: numb
     throw new ApiError(404, "Rental space not found.");
   }
 
-  if (rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: Only the rental owner can view these bookings.");
+  if (rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: Only the rental owner can view these bookings.",
+    );
   }
 
   const pageNumber = Number(query.page) || 1;
@@ -132,7 +146,11 @@ const getBookingsForRentalSpace = async (rentalSpaceId: number, user: { id: numb
   };
 };
 
-const updateBookingByUser = async (id: number, userId: number, payload: TUpdateBookingUserSchema) => {
+const updateBookingByUser = async (
+  id: number,
+  userId: number,
+  payload: TUpdateBookingUserSchema,
+) => {
   const booking = await prisma.booking.findUnique({ where: { id } });
 
   if (!booking) {
@@ -140,7 +158,10 @@ const updateBookingByUser = async (id: number, userId: number, payload: TUpdateB
   }
 
   if (booking.userId !== userId) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this booking.");
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this booking.",
+    );
   }
 
   const updatedBooking = await prisma.booking.update({
@@ -148,12 +169,19 @@ const updateBookingByUser = async (id: number, userId: number, payload: TUpdateB
     data: { status: payload.status as BookingStatus },
   });
 
-  await enforceAvailabilityLogic(updatedBooking.rentalSpaceId, updatedBooking.status);
+  await enforceAvailabilityLogic(
+    updatedBooking.rentalSpaceId,
+    updatedBooking.status,
+  );
 
   return updatedBooking;
 };
 
-const updateBookingByVendor = async (id: number, user: { id: number; role: UserRole }, payload: TUpdateBookingVendorSchema) => {
+const updateBookingByVendor = async (
+  id: number,
+  user: { id: number; role: UserRole },
+  payload: TUpdateBookingVendorSchema,
+) => {
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: { rentalSpace: { include: { vendor: true } } },
@@ -163,8 +191,15 @@ const updateBookingByVendor = async (id: number, user: { id: number; role: UserR
     throw new ApiError(404, "Booking not found.");
   }
 
-  if (booking.rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this booking.");
+  if (booking.rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this booking.",
+    );
+  }
+
+  if(booking.status === BookingStatus.CANCELLED){
+    throw new ApiError(400, "Booking is already cancelled.");
   }
 
   const updatedBooking = await prisma.booking.update({
@@ -172,7 +207,10 @@ const updateBookingByVendor = async (id: number, user: { id: number; role: UserR
     data: { status: payload.status },
   });
 
-  await enforceAvailabilityLogic(updatedBooking.rentalSpaceId, updatedBooking.status);
+  await enforceAvailabilityLogic(
+    updatedBooking.rentalSpaceId,
+    updatedBooking.status,
+  );
 
   return updatedBooking;
 };
@@ -183,5 +221,5 @@ export const BookingService = {
   getBookingsForRentalSpace,
   updateBookingByUser,
   updateBookingByVendor,
-  enforceAvailabilityLogic // Exposing for admin service context
+  enforceAvailabilityLogic, // Exposing for admin service context
 };

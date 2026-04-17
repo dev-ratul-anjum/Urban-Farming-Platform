@@ -2,8 +2,12 @@ import { z } from "zod";
 
 export const createRentalSpaceSchema = z.object({
   location: z.string("Location is required").min(1, "Location cannot be empty"),
-  size: z.number({ message: "Size is required" }).positive("Size must be positive"),
-  price: z.number({ message: "Price is required" }).positive("Price must be positive"),
+  size: z
+    .number({ message: "Size is required" })
+    .positive("Size must be positive"),
+  price: z
+    .number({ message: "Price is required" })
+    .positive("Price must be positive"),
   availability: z.boolean().default(true),
 });
 

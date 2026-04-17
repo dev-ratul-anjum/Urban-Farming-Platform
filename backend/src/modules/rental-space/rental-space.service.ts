@@ -1,15 +1,24 @@
 import { prisma } from "$/prisma/index.js";
 import { ApiError } from "$/middlewares/errorHandler.js";
 import { UserRole } from "$/prisma/generated/enums.js";
-import { TCreateRentalSpaceSchema, TUpdateRentalSpaceSchema } from "./rental-space.schema.js";
+import {
+  TCreateRentalSpaceSchema,
+  TUpdateRentalSpaceSchema,
+} from "./rental-space.schema.js";
 
-const createRentalSpace = async (userId: number, payload: TCreateRentalSpaceSchema) => {
+const createRentalSpace = async (
+  userId: number,
+  payload: TCreateRentalSpaceSchema,
+) => {
   const vendorProfile = await prisma.vendorProfile.findUnique({
     where: { userId },
   });
 
   if (!vendorProfile) {
-    throw new ApiError(403, "Forbidden: Only vendors with a complete profile can create rental spaces.");
+    throw new ApiError(
+      403,
+      "Forbidden: Only vendors with a complete profile can create rental spaces.",
+    );
   }
 
   const rentalSpace = await prisma.rentalSpace.create({
@@ -58,6 +67,7 @@ const getAllRentalSpaces = async (query: Record<string, any>) => {
   const hasPrevPage = pageNumber > 1;
 
   return {
+    rentalSpaces: rows,
     meta: {
       totalItems,
       currentPage: pageNumber,
@@ -66,7 +76,6 @@ const getAllRentalSpaces = async (query: Record<string, any>) => {
       nextPage: hasNextPage ? pageNumber + 1 : null,
       prevPage: hasPrevPage ? pageNumber - 1 : null,
     },
-    rentalSpaces: rows,
   };
 };
 
@@ -95,7 +104,7 @@ const getRentalSpaceById = async (id: number) => {
 const updateRentalSpace = async (
   id: number,
   user: { id: number; role: UserRole },
-  payload: TUpdateRentalSpaceSchema
+  payload: TUpdateRentalSpaceSchema,
 ) => {
   const rentalSpace = await prisma.rentalSpace.findUnique({
     where: { id },
@@ -106,8 +115,11 @@ const updateRentalSpace = async (
     throw new ApiError(404, "Rental space not found.");
   }
 
-  if (rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to update this rental space.");
+  if (rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to update this rental space.",
+    );
   }
 
   const updatedRentalSpace = await prisma.rentalSpace.update({
@@ -118,7 +130,10 @@ const updateRentalSpace = async (
   return updatedRentalSpace;
 };
 
-const deleteRentalSpace = async (id: number, user: { id: number; role: UserRole }) => {
+const deleteRentalSpace = async (
+  id: number,
+  user: { id: number; role: UserRole },
+) => {
   const rentalSpace = await prisma.rentalSpace.findUnique({
     where: { id },
     include: { vendor: true },
@@ -128,8 +143,11 @@ const deleteRentalSpace = async (id: number, user: { id: number; role: UserRole 
     throw new ApiError(404, "Rental space not found.");
   }
 
-  if (rentalSpace.vendor.userId !== user.id && user.role !== UserRole.ADMIN) {
-    throw new ApiError(403, "Forbidden: You don't have permission to delete this rental space.");
+  if (rentalSpace.vendor.userId !== user.id) {
+    throw new ApiError(
+      403,
+      "Forbidden: You don't have permission to delete this rental space.",
+    );
   }
 
   await prisma.rentalSpace.delete({ where: { id } });

@@ -3,11 +3,12 @@ import catchAsync from "$/utils/catchAsync.js";
 import responseHandler from "$/utils/responseHandler.js";
 import { CommunityPostService } from "./community-post.service.js";
 import { UserRole } from "$/prisma/generated/enums.js";
+import { ApiError } from "$/middlewares/errorHandler.js";
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
   const currentUserId = req.user!.id;
   const result = await CommunityPostService.createPost(currentUserId, req.body);
-  
+
   return responseHandler(res, 201, {
     success: true,
     message: "Community post created successfully",
@@ -17,7 +18,7 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
 
 const getAllPosts = catchAsync(async (req: Request, res: Response) => {
   const result = await CommunityPostService.getAllPosts(req.query);
-  
+
   return responseHandler(res, 200, {
     success: true,
     message: "Community posts retrieved successfully",
@@ -26,10 +27,19 @@ const getAllPosts = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllPostsByUser = catchAsync(async (req: Request, res: Response) => {
-  // Use user id from params if specified, otherwise default to current logged in user
-  const userId = req.params.userId ? Number(req.params.userId) : req.user!.id;
-  const result = await CommunityPostService.getAllPostsByUser(userId, req.query);
-  
+  const userId = req.params.userId
+    ? Number(req.params.userId)
+    : req.user!.id;
+
+  if (Number.isNaN(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
+  const result = await CommunityPostService.getAllPostsByUser(
+    userId,
+    req.query,
+  );
+
   return responseHandler(res, 200, {
     success: true,
     message: "User's community posts retrieved successfully",
@@ -38,8 +48,14 @@ const getAllPostsByUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPostById = catchAsync(async (req: Request, res: Response) => {
-  const result = await CommunityPostService.getPostById(Number(req.params.id));
-  
+  const postId = Number(req.params.id);
+
+  if (Number.isNaN(postId)) {
+    throw new ApiError(400, "Invalid post ID");
+  }
+
+  const result = await CommunityPostService.getPostById(postId);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Community post retrieved successfully",
@@ -49,8 +65,15 @@ const getPostById = catchAsync(async (req: Request, res: Response) => {
 
 const updatePost = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await CommunityPostService.updatePost(Number(req.params.id), user, req.body);
-  
+
+  const postId = Number(req.params.id);
+
+  if (Number.isNaN(postId)) {
+    throw new ApiError(400, "Invalid post ID");
+  }
+
+  const result = await CommunityPostService.updatePost(postId, user, req.body);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Community post updated successfully",
@@ -60,8 +83,16 @@ const updatePost = catchAsync(async (req: Request, res: Response) => {
 
 const deletePost = catchAsync(async (req: Request, res: Response) => {
   const user = req.user! as { id: number; role: UserRole };
-  const result = await CommunityPostService.deletePost(Number(req.params.id), user);
+
   
+  const postId = Number(req.params.id);
+
+  if (Number.isNaN(postId)) {
+    throw new ApiError(400, "Invalid post ID");
+  }
+
+  const result = await CommunityPostService.deletePost(postId, user);
+
   return responseHandler(res, 200, {
     success: true,
     message: "Community post deleted successfully",
